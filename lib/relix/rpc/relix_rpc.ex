@@ -108,6 +108,10 @@ defmodule Relix.RPC do
     %{rpc | module: module}
   end
 
+  def set_function(%__MODULE__{} = rpc, function) do
+    %{rpc | function: function}
+  end
+
   def set_fallback(rpc = %__MODULE__{}, function: function, arg: arg) do
     %{rpc | fallback_fun: function, fallback_arg: arg}
   end
