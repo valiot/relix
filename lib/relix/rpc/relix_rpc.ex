@@ -109,6 +109,10 @@ defmodule Relix.RPC do
      )}
   end
 
+  def response(%__MODULE__{}, _opts) do
+    {:error, :no_executed}
+  end
+
   def set_arguments(%__MODULE__{} = rpc, arguments) do
     %{rpc | args: arguments}
   end
