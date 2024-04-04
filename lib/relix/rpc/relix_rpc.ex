@@ -100,6 +100,15 @@ defmodule Relix.RPC do
      )}
   end
 
+  def response(%__MODULE__{status: :executed} = rpc, select: response_keys, in: f) do
+    {:ok,
+     Enum.reduce(
+       response_keys,
+       %{},
+       fn k, acc -> Map.put(acc, to_string(k), get_in(f.(rpc.resp_body), [Access.key!(k)])) end
+     )}
+  end
+
   def set_arguments(%__MODULE__{} = rpc, arguments) do
     %{rpc | args: arguments}
   end
