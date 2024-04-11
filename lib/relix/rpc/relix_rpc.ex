@@ -87,8 +87,16 @@ defmodule Relix.RPC do
     {:ok, rpc.resp_body}
   end
 
+  def response(%__MODULE__{status: :executed, resp_body: {:error, _} = resp_error}) do
+    resp_error
+  end
+
   def response(%__MODULE__{}) do
     {:error, :no_executed}
+  end
+
+  def response(%__MODULE__{status: :executed, resp_body: {:error, _} = resp_error}, _) do
+    resp_error
   end
 
   def response(%__MODULE__{status: :executed} = rpc, select: response_keys) do
