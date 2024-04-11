@@ -82,7 +82,12 @@ defmodule Relix.RPC do
   @doc """
   Gets the response from the RPC struct if already executed,
   or `{:error, :no_executed}` otherwise.
+  If the remote function reponds with `{:error, _}`, `RPC.response` with return
+  such error.
+  Any other result besides `{:error, _} = result` will be
+  wraped in `{:ok, result}`
   """
+  @spec response(__MODULE__.t()) :: {:ok, any()} | {:error, any()}
   def response(%__MODULE__{status: :executed} = rpc) do
     {:ok, rpc.resp_body}
   end
