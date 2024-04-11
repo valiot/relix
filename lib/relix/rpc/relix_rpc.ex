@@ -86,6 +86,10 @@ defmodule Relix.RPC do
   such error.
   Any other result besides `{:error, _} = result` will be
   wraped in `{:ok, result}`
+
+  Selecting fields with `select:` option, a list of keys to be returned in the
+  response if response is a map. `in:` can provide a function to return
+  the map in a more complex response, where selected fields are expected to be.
   """
   @spec response(__MODULE__.t()) :: {:ok, any()} | {:error, any()}
   def response(%__MODULE__{status: :executed} = rpc) do
