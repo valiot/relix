@@ -1,3 +1,5 @@
+![Relix Logo](https://github.com/valiot/relix/blob/a19b7019305a8e560d4fb19f235b819aaa912a9b/priv/static/images/relix.png)
+
 # Relix
 
 **TODO: Add description**
