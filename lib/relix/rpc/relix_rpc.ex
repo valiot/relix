@@ -82,7 +82,20 @@ defmodule Relix.RPC do
   @doc """
   Gets the response from the RPC struct if already executed,
   or `{:error, :no_executed}` otherwise.
+  If the remote function reponds with `{:error, _}`, `RPC.response` with return
+  such error.
+  Any other result besides `{:error, _} = result` will be
+  wraped in `{:ok, result}`
+
+  Selecting fields with `select:` option, a list of keys to be returned in the
+  response if response is a map. `in:` can provide a function to return
+  the map in a more complex response, where selected fields are expected to be.
   """
+  @spec response(__MODULE__.t()) :: {:ok, any()} | {:error, any()}
+  def response(%__MODULE__{status: :executed, resp_body: {:error, _} = resp_error}) do
+    resp_error
+  end
+  
   def response(%__MODULE__{status: :executed} = rpc) do
     {:ok, rpc.resp_body}
   end
