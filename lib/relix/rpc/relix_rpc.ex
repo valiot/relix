@@ -92,12 +92,12 @@ defmodule Relix.RPC do
   the map in a more complex response, where selected fields are expected to be.
   """
   @spec response(__MODULE__.t()) :: {:ok, any()} | {:error, any()}
-  def response(%__MODULE__{status: :executed} = rpc) do
-    {:ok, rpc.resp_body}
-  end
-
   def response(%__MODULE__{status: :executed, resp_body: {:error, _} = resp_error}) do
     resp_error
+  end
+  
+  def response(%__MODULE__{status: :executed} = rpc) do
+    {:ok, rpc.resp_body}
   end
 
   def response(%__MODULE__{}) do
