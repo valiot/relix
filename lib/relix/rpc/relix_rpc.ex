@@ -15,8 +15,6 @@ defmodule Relix.RPC do
             function: nil,
             args: [],
             response: nil,
-            fallback_fun: nil,
-            fallback_arg: nil,
             resp_body: nil,
             status: nil,
             attempts: 0
@@ -27,8 +25,6 @@ defmodule Relix.RPC do
           function: atom(),
           args: list(any()),
           response: any(),
-          fallback_fun: function(),
-          fallback_arg: any(),
           resp_body: any(),
           status: :no_reachable | :executed,
           attempts: integer()
@@ -75,8 +71,13 @@ defmodule Relix.RPC do
   This function is executed just before performing an RPC execution to
   consider the current reachable nodes containing the `RPC.node` wildcard name.
   """
-  defp reachable_nodes(%__MODULE__{} = rpc) do
+  def reachable_nodes(%__MODULE__{node: :self}) do
+    [Node.self()]
+  end
+
+  def reachable_nodes(%__MODULE__{} = rpc) do
     Enum.filter(Node.list(), &String.contains?(to_string(&1), rpc.node))
+    |> Enum.shuffle()
   end
 
   @doc """
