@@ -3,7 +3,7 @@ defmodule RelixTest do
   doctest Relix
 
   alias Relix.RPC
-  
+
   test "test RPC success" do
     rpc = %Relix.RPC{
       node: :self,
