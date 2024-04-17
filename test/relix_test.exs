@@ -13,8 +13,23 @@ defmodule RelixTest do
     }
 
     assert {:ok, %Relix.RPC{node: nil}} ==
-             rpc
-             |> RPC.execute()
-             |> RPC.response()
+      rpc
+      |> RPC.execute()
+      |> RPC.response()
+  end
+
+  test "test no reachable nodes" do
+    rpc = %Relix.RPC{
+      node: "somenode"
+    }
+
+    assert %{ rpc | status: :no_reachable} ==
+      rpc
+      |> RPC.execute()
+
+    assert {:error, :no_executed} ==
+      rpc
+      |> RPC.execute()
+      |> RPC.response()
   end
 end
