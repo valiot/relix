@@ -13,9 +13,9 @@ defmodule RelixTest do
     }
 
     assert {:ok, %Relix.RPC{node: nil}} ==
-      rpc
-      |> RPC.execute()
-      |> RPC.response()
+             rpc
+             |> RPC.execute()
+             |> RPC.response()
   end
 
   test "test no reachable nodes" do
@@ -23,14 +23,14 @@ defmodule RelixTest do
       node: "somenode"
     }
 
-    assert %{ rpc | status: :no_reachable} ==
-      rpc
-      |> RPC.execute()
+    assert %{rpc | status: :no_reachable} ==
+             rpc
+             |> RPC.execute()
 
     assert {:error, :no_executed} ==
-      rpc
-      |> RPC.execute()
-      |> RPC.response()
+             rpc
+             |> RPC.execute()
+             |> RPC.response()
   end
 
   test "test response select" do
@@ -38,13 +38,12 @@ defmodule RelixTest do
       node: :self
     }
 
-    assert {:ok ,  %{"1" => :val}} ==
-      rpc
-      |> RPC.set_module(Map)
-      |> RPC.set_function(:from_keys)
-      |> RPC.set_arguments([[1, 2], :val])
-      |> RPC.execute()
-      |> RPC.response(select: [1])
-
+    assert {:ok, %{"1" => :val}} ==
+             rpc
+             |> RPC.set_module(Map)
+             |> RPC.set_function(:from_keys)
+             |> RPC.set_arguments([[1, 2], :val])
+             |> RPC.execute()
+             |> RPC.response(select: [1])
   end
 end
