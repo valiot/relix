@@ -32,4 +32,19 @@ defmodule RelixTest do
       |> RPC.execute()
       |> RPC.response()
   end
+
+  test "test response select" do
+    rpc = %Relix.RPC{
+      node: :self
+    }
+
+    assert {:ok ,  %{"1" => :val}} ==
+      rpc
+      |> RPC.set_module(Map)
+      |> RPC.set_function(:from_keys)
+      |> RPC.set_arguments([[1, 2], :val])
+      |> RPC.execute()
+      |> RPC.response(select: [1])
+
+  end
 end
