@@ -39,16 +39,33 @@ defmodule Relix.RPC do
   An arbitrary particular node `match_node` is chosen from a list of
   reachable nodes satsfyig the name criteria stablished in `RPC.node`
   """
+
+  def execute!(%__MODULE__{} = rpc) do
+    case execute(rpc) do
+      %{status: :no_reachable} ->
+        raise "No reachable nodes matching node: \"#{rpc.node}\"" |> add_source_node()
+
+      executed ->
+        executed
+    end
+  end
+
   def execute(%__MODULE__{} = rpc) do
     with {:reachable_nodes, [match_node | _more_nodes]} <-
            {:reachable_nodes, reachable_nodes(rpc)},
          response <-
-           :erpc.call(
-             match_node,
-             rpc.module,
-             rpc.function,
-             rpc.args
-           ) do
+           (try do
+              :erpc.call(
+                match_node,
+                rpc.module,
+                rpc.function,
+                rpc.args
+              )
+            rescue
+              e ->
+                Logger.error("attempting: #{match_node}")
+                reraise e, __STACKTRACE__
+            end) do
       %{rpc | resp_body: response}
       |> put_status(:executed)
     else
@@ -145,5 +162,9 @@ defmodule Relix.RPC do
 
   def set_function(%__MODULE__{} = rpc, function) do
     %{rpc | function: function}
+  end
+
+  defp add_source_node(msg) do
+    to_string(Node.self()) <> " : " <> msg
   end
 end
