@@ -32,6 +32,8 @@ defmodule Relix.RPC do
 
   require Logger
 
+  alias Relix.RPCError
+
   def new(), do: %__MODULE__{}
 
   @doc """
@@ -43,7 +45,7 @@ defmodule Relix.RPC do
   def execute!(%__MODULE__{} = rpc) do
     case execute(rpc) do
       %{status: :no_reachable} ->
-        raise "No reachable nodes matching node: \"#{rpc.node}\"" |> add_source_node()
+        raise RPCError, message: "No reachable nodes matching node: \"#{rpc.node}\"" |> add_source_node()
 
       executed ->
         executed
