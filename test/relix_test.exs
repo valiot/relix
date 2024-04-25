@@ -23,11 +23,11 @@ defmodule RelixTest do
       node: "somenode"
     }
 
-    assert %{rpc | status: :no_reachable} ==
+    assert %{rpc | status: :not_reachable} ==
              rpc
              |> RPC.execute()
 
-    assert {:error, :no_executed} ==
+    assert {:error, :not_executed} ==
              rpc
              |> RPC.execute()
              |> RPC.response()
