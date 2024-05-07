@@ -15,8 +15,6 @@ defmodule Relix.RPC do
             function: nil,
             args: [],
             response: nil,
-            fallback_fun: nil,
-            fallback_arg: nil,
             resp_body: nil,
             status: nil,
             attempts: 0
@@ -27,10 +25,8 @@ defmodule Relix.RPC do
           function: atom(),
           args: list(any()),
           response: any(),
-          fallback_fun: function(),
-          fallback_arg: any(),
           resp_body: any(),
-          status: :no_reachable | :executed,
+          status: :not_reachable | :executed,
           attempts: integer()
         }
 
@@ -58,7 +54,7 @@ defmodule Relix.RPC do
     else
       {:reachable_nodes, []} ->
         Logger.debug("⛓ no reachable cluster nodes")
-        rpc |> put_status(:no_reachable)
+        rpc |> put_status(:not_reachable)
 
       error ->
         {:error, error}
@@ -75,13 +71,18 @@ defmodule Relix.RPC do
   This function is executed just before performing an RPC execution to
   consider the current reachable nodes containing the `RPC.node` wildcard name.
   """
-  defp reachable_nodes(%__MODULE__{} = rpc) do
+  def reachable_nodes(%__MODULE__{node: :self}) do
+    [Node.self()]
+  end
+
+  def reachable_nodes(%__MODULE__{} = rpc) do
     Enum.filter(Node.list(), &String.contains?(to_string(&1), rpc.node))
+    |> Enum.shuffle()
   end
 
   @doc """
   Gets the response from the RPC struct if already executed,
-  or `{:error, :no_executed}` otherwise.
+  or `{:error, :not_executed}` otherwise.
   If the remote function reponds with `{:error, _}`, `RPC.response` with return
   such error.
   Any other result besides `{:error, _} = result` will be
@@ -95,7 +96,7 @@ defmodule Relix.RPC do
   def response(%__MODULE__{status: :executed, resp_body: {:error, _} = resp_error}) do
     resp_error
   end
-  
+
   def response(%__MODULE__{status: :executed} = rpc) do
     {:ok, rpc.resp_body}
   end
@@ -105,7 +106,7 @@ defmodule Relix.RPC do
   end
 
   def response(%__MODULE__{}) do
-    {:error, :no_executed}
+    {:error, :not_executed}
   end
 
   def response(%__MODULE__{status: :executed, resp_body: {:error, _} = resp_error}, _) do
@@ -131,7 +132,7 @@ defmodule Relix.RPC do
   end
 
   def response(%__MODULE__{}, _opts) do
-    {:error, :no_executed}
+    {:error, :not_executed}
   end
 
   def set_arguments(%__MODULE__{} = rpc, arguments) do
@@ -144,9 +145,5 @@ defmodule Relix.RPC do
 
   def set_function(%__MODULE__{} = rpc, function) do
     %{rpc | function: function}
-  end
-
-  def set_fallback(rpc = %__MODULE__{}, function: function, arg: arg) do
-    %{rpc | fallback_fun: function, fallback_arg: arg}
   end
 end
