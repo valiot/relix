@@ -50,9 +50,10 @@ iex(relix@127.0.0.1)3> rpc |> RPC.execute() |> RPC.response()
 
 `RPC.execute()` will perform an RPC call with provided parameters. If the RPC call succeeded, it will set `RPC.status: :executed`, and the response will be set under `RPC.resp_body` and can be extracted by `RPC.response()`
 
-If no nodes are reachable satisfying the provided `node:` identifier, `RPC.execute` will set `RPC.status: :no_reachable`.
+If no nodes are reachable satisfying the provided `node:` identifier, `RPC.execute` will set `RPC.status: :not_reachable`.
 
-`RPC.response()` extracts the response if `RPC.status: executed` to `{:ok, RPC.resp_body}`. If the current status `RPC.status` is different from `:executed`, it returns `{:error, :no_executed}`.
+`RPC.response()` extracts the response if `RPC.status: executed` to `{:ok, RPC.resp_body}`. If the current status `RPC.status` is different from `:executed`, it returns `{:error, :not_executed}`.
+
 If the RPC response is on the form  `{:error, _} = function_error`. such `function_error` will be returned.
 
 ## Installation

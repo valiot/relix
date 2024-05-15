@@ -26,7 +26,7 @@ defmodule Relix.RPC do
           args: list(any()),
           response: any(),
           resp_body: any(),
-          status: :no_reachable | :executed,
+          status: :not_reachable | :executed,
           attempts: integer()
         }
 
@@ -44,7 +44,7 @@ defmodule Relix.RPC do
 
   def execute!(%__MODULE__{} = rpc) do
     case execute(rpc) do
-      %{status: :no_reachable} ->
+      %{status: :not_reachable} ->
         raise RPCError, message: "No reachable nodes matching node: \"#{rpc.node}\"" |> add_source_node()
 
       executed ->
@@ -73,7 +73,7 @@ defmodule Relix.RPC do
     else
       {:reachable_nodes, []} ->
         Logger.debug("⛓ no reachable cluster nodes")
-        rpc |> put_status(:no_reachable)
+        rpc |> put_status(:not_reachable)
 
       error ->
         {:error, error}
@@ -101,7 +101,7 @@ defmodule Relix.RPC do
 
   @doc """
   Gets the response from the RPC struct if already executed,
-  or `{:error, :no_executed}` otherwise.
+  or `{:error, :not_executed}` otherwise.
   If the remote function reponds with `{:error, _}`, `RPC.response` with return
   such error.
   Any other result besides `{:error, _} = result` will be
@@ -125,7 +125,7 @@ defmodule Relix.RPC do
   end
 
   def response(%__MODULE__{}) do
-    {:error, :no_executed}
+    {:error, :not_executed}
   end
 
   def response(%__MODULE__{status: :executed, resp_body: {:error, _} = resp_error}, _) do
@@ -151,7 +151,7 @@ defmodule Relix.RPC do
   end
 
   def response(%__MODULE__{}, _opts) do
-    {:error, :no_executed}
+    {:error, :not_executed}
   end
 
   def set_arguments(%__MODULE__{} = rpc, arguments) do
