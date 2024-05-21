@@ -33,6 +33,25 @@ defmodule RelixTest do
              |> RPC.response()
   end
 
+  test "test no reachable nodes error" do
+    rpc = %Relix.RPC{
+      node: :not_reachable_at_all,
+      module: Relix.RPC,
+      function: :new,
+      args: []
+    }
+
+    expected_error =
+      try do
+        rpc |> Relix.RPC.execute!()
+      rescue
+        r -> r
+      end
+
+    assert expected_error.message
+           |> String.contains?("No reachable nodes matching node: \"not_reachable_at_all\"")
+  end
+
   test "test response select" do
     rpc = %Relix.RPC{
       node: :self
