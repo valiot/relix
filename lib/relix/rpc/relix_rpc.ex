@@ -95,7 +95,7 @@ defmodule Relix.RPC do
   end
 
   def reachable_nodes(%__MODULE__{} = rpc) do
-    Enum.filter(Node.list(), &String.contains?(to_string(&1), rpc.node))
+    Enum.filter(Node.list(), &String.starts_with?(to_string(&1) <> "@", rpc.node))
     |> Enum.shuffle()
   end
 
