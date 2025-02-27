@@ -2,7 +2,7 @@ on: push
 
 env:
   OTP_VERSION: "26"
-  ELIXIR_VERSION: "1.16"
+  ELIXIR_VERSION: "1.18"
 
 jobs:
   test:
