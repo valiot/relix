@@ -4,8 +4,8 @@ defmodule Relix.MixProject do
   def project do
     [
       app: :relix,
-      version: "0.1.2",
-      elixir: "~> 1.15",
+      version: "0.1.3",
+      elixir: "~> 1.18",
       start_permanent: Mix.env() == :prod,
       deps: deps()
     ]
