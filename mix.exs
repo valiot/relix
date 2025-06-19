@@ -5,7 +5,7 @@ defmodule Relix.MixProject do
     [
       app: :relix,
       version: "0.1.3",
-      elixir: "~> 1.18",
+      elixir: "~> 1.17",
       start_permanent: Mix.env() == :prod,
       deps: deps()
     ]
