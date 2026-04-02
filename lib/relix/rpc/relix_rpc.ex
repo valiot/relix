@@ -65,7 +65,7 @@ defmodule Relix.RPC do
               )
             rescue
               e ->
-                Logger.error("attempting: #{match_node}")
+                Logger.error("RPC call #{rpc.module}.#{rpc.function}/#{length(rpc.args)} failed on #{match_node}: #{Exception.message(e)}")
                 reraise e, __STACKTRACE__
             end) do
       %{rpc | resp_body: response}

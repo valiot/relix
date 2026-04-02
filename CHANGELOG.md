@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.1.4 [2026-04-02]
+
+- [Bug Fix] Improve RPC error logging to include module, function, arity, and exception message.
+
 ## 0.1.3 [2024-08-20]
 
 - [Bug Fix] Wildcard node naming now ensures matching nodes starts with `wildcard@`.
