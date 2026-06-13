@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.1.5 [2026-06-13]
+
+- [Bug Fix] Handle `:exit` (e.g. `{:exception, :terminating}`) and `:throw` from `erpc.call` in `Relix.RPC.execute/1` (OPS-4536). Previously these propagated as unhandled exits, crashing callers such as `TokenHelper.authorize_token_via_rpc`.
+
 ## 0.1.4 [2026-04-02]
 
 - [Bug Fix] Improve RPC error logging to include module, function, arity, and exception message.

@@ -69,7 +69,21 @@ defmodule Relix.RPC do
                   "RPC call #{rpc.module}.#{rpc.function}/#{length(rpc.args)} failed on #{match_node}: #{Exception.message(e)}"
                 )
 
-                reraise e, __STACKTRACE__
+                {:error, {:rpc_exit, e}}
+            catch
+              :exit, reason ->
+                Logger.error(
+                  "RPC call #{rpc.module}.#{rpc.function}/#{length(rpc.args)} exited on #{match_node}: #{inspect(reason)}"
+                )
+
+                {:error, {:rpc_exit, reason}}
+
+              :throw, value ->
+                Logger.error(
+                  "RPC call #{rpc.module}.#{rpc.function}/#{length(rpc.args)} threw on #{match_node}: #{inspect(value)}"
+                )
+
+                {:error, {:rpc_exit, {:throw, value}}}
             end) do
       %{rpc | resp_body: response}
       |> put_status(:executed)

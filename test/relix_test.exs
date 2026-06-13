@@ -65,4 +65,37 @@ defmodule RelixTest do
              |> RPC.execute()
              |> RPC.response(select: [1])
   end
+
+  # Reproduces OPS-4536: erpc.call surfaces exit(R) from the remote MFA as {:exception, R}
+  # (a catchable :exit, not a rescue-able exception). Before the fix this crashed the caller.
+  # Plain `exit(:terminating)` in the MFA yields exactly `{:exception, :terminating}` at the call site.
+  def cause_erpc_terminating_exit, do: exit(:terminating)
+
+  test "handles {:exception, :terminating} exit from erpc.call and returns error response" do
+    rpc = %Relix.RPC{
+      node: :self,
+      module: __MODULE__,
+      function: :cause_erpc_terminating_exit,
+      args: []
+    }
+
+    executed = RPC.execute(rpc)
+    assert executed.status == :executed
+    assert {:error, {:rpc_exit, {:exception, :terminating}}} = RPC.response(executed)
+  end
+
+  def cause_erpc_throw, do: throw(:boom)
+
+  test "handles throw from erpc.call and returns error response" do
+    rpc = %Relix.RPC{
+      node: :self,
+      module: __MODULE__,
+      function: :cause_erpc_throw,
+      args: []
+    }
+
+    executed = RPC.execute(rpc)
+    assert executed.status == :executed
+    assert {:error, {:rpc_exit, {:throw, :boom}}} = RPC.response(executed)
+  end
 end
