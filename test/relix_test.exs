@@ -68,6 +68,16 @@ defmodule RelixTest do
 
   # :erpc.call/5 re-raises a remote exit(Reason) as exit({:exception, Reason}).
   # Node shutdown uses :terminating. rescue does not catch that exit.
+  test "preserves a remote {:ok, value} return" do
+    result =
+      %RPC{node: :self, module: __MODULE__, function: :ok_pair, args: [:token]}
+      |> RPC.execute()
+
+    assert result.status == :executed
+    assert result.resp_body == {:ok, :token}
+    assert {:ok, {:ok, :token}} == RPC.response(result)
+  end
+
   test "maps a terminating node exit to not_reachable" do
     result = exit_rpc(:terminating) |> RPC.execute()
 
@@ -115,6 +125,7 @@ defmodule RelixTest do
     assert catch_throw(RPC.execute(rpc)) == :nope
   end
 
+  def ok_pair(value), do: {:ok, value}
   def exit_with(reason), do: exit(reason)
   def raise_error(message), do: raise(message)
   def throw_with(value), do: throw(value)

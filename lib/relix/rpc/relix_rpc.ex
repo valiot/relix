@@ -55,7 +55,7 @@ defmodule Relix.RPC do
   def execute(%__MODULE__{} = rpc) do
     with {:reachable_nodes, [match_node | _more_nodes]} <-
            {:reachable_nodes, reachable_nodes(rpc)},
-         {:ok, response} <- remote_call(rpc, match_node) do
+         {:called, response} <- remote_call(rpc, match_node) do
       %{rpc | resp_body: response}
       |> put_status(:executed)
     else
@@ -80,7 +80,7 @@ defmodule Relix.RPC do
           rpc.args
         )
 
-      {:ok, response}
+      {:called, response}
     rescue
       e ->
         Logger.error(
