@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.1.5 [2026-11-03]
+
+- [Bug Fix] `Relix.RPC.execute/1` maps a node-termination exit from `:erpc.call/5` to `:not_reachable` instead of crashing the caller.
+
 ## 0.1.4 [2026-04-02]
 
 - [Bug Fix] Improve RPC error logging to include module, function, arity, and exception message.

@@ -55,22 +55,7 @@ defmodule Relix.RPC do
   def execute(%__MODULE__{} = rpc) do
     with {:reachable_nodes, [match_node | _more_nodes]} <-
            {:reachable_nodes, reachable_nodes(rpc)},
-         response <-
-           (try do
-              :erpc.call(
-                match_node,
-                rpc.module,
-                rpc.function,
-                rpc.args
-              )
-            rescue
-              e ->
-                Logger.error(
-                  "RPC call #{rpc.module}.#{rpc.function}/#{length(rpc.args)} failed on #{match_node}: #{Exception.message(e)}"
-                )
-
-                reraise e, __STACKTRACE__
-            end) do
+         {:ok, response} <- remote_call(rpc, match_node) do
       %{rpc | resp_body: response}
       |> put_status(:executed)
     else
@@ -78,10 +63,60 @@ defmodule Relix.RPC do
         Logger.debug("⛓ no reachable cluster nodes")
         rpc |> put_status(:not_reachable)
 
-      error ->
-        {:error, error}
+      :not_reachable ->
+        rpc |> put_status(:not_reachable)
     end
   end
+
+  # erpc raises an exit, not an exception, when the remote side dies.
+  # rescue does not catch it, so the exit used to escape and 500 the caller.
+  defp remote_call(rpc, match_node) do
+    try do
+      response =
+        :erpc.call(
+          match_node,
+          rpc.module,
+          rpc.function,
+          rpc.args
+        )
+
+      {:ok, response}
+    rescue
+      e ->
+        Logger.error(
+          "RPC call #{rpc.module}.#{rpc.function}/#{length(rpc.args)} failed on #{match_node}: #{Exception.message(e)}"
+        )
+
+        reraise e, __STACKTRACE__
+    catch
+      :exit, reason ->
+        handle_call_exit(rpc, match_node, reason, __STACKTRACE__)
+    end
+  end
+
+  defp handle_call_exit(rpc, match_node, reason, stack) do
+    if node_gone_exit?(reason) do
+      Logger.error(
+        "RPC call #{rpc.module}.#{rpc.function}/#{length(rpc.args)} on #{match_node} exited with #{inspect(reason)}; marking not reachable"
+      )
+
+      :not_reachable
+    else
+      :erlang.raise(:exit, reason, stack)
+    end
+  end
+
+  # `{:exception, Reason}` is a remote `exit/1`. `{:signal, Reason}` is a killed
+  # worker. Only shutdown reasons are unreachability; other exits propagate.
+  defp node_gone_exit?({:exception, reason}), do: node_gone?(reason)
+  defp node_gone_exit?({:signal, reason}), do: node_gone?(reason)
+  defp node_gone_exit?(reason), do: node_gone?(reason)
+
+  defp node_gone?(:terminating), do: true
+  defp node_gone?(:shutdown), do: true
+  defp node_gone?({:shutdown, _reason}), do: true
+  defp node_gone?(:killed), do: true
+  defp node_gone?(_reason), do: false
 
   def put_status(%__MODULE__{} = rpc, status) do
     %{rpc | status: status}
