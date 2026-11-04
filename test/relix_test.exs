@@ -65,4 +65,77 @@ defmodule RelixTest do
              |> RPC.execute()
              |> RPC.response(select: [1])
   end
+
+  # :erpc.call/5 re-raises a remote exit(Reason) as exit({:exception, Reason}).
+  # Node shutdown uses :terminating. rescue does not catch that exit.
+  test "preserves a remote {:ok, value} return" do
+    result =
+      %RPC{node: :self, module: __MODULE__, function: :ok_pair, args: [:token]}
+      |> RPC.execute()
+
+    assert result.status == :executed
+    assert result.resp_body == {:ok, :token}
+    assert {:ok, {:ok, :token}} == RPC.response(result)
+  end
+
+  test "maps a terminating node exit to not_reachable" do
+    result = exit_rpc(:terminating) |> RPC.execute()
+
+    assert result.status == :not_reachable
+    assert {:error, :not_executed} == RPC.response(result)
+  end
+
+  test "maps other node-shutdown exits to not_reachable" do
+    for reason <- [:shutdown, {:shutdown, :app_stop}, :killed] do
+      assert %{status: :not_reachable} = exit_rpc(reason) |> RPC.execute()
+    end
+  end
+
+  test "execute! raises RPCError when the remote node terminates" do
+    assert_raise Relix.RPCError, ~r/No reachable nodes/, fn ->
+      exit_rpc(:terminating) |> RPC.execute!()
+    end
+  end
+
+  test "remote application exits still propagate" do
+    assert catch_exit(exit_rpc(:boom) |> RPC.execute()) == {:exception, :boom}
+  end
+
+  test "remote exceptions still propagate" do
+    rpc = %RPC{
+      node: :self,
+      module: __MODULE__,
+      function: :raise_error,
+      args: ["nope"]
+    }
+
+    assert_raise ErlangError, fn ->
+      RPC.execute(rpc)
+    end
+  end
+
+  test "remote throws still propagate" do
+    rpc = %RPC{
+      node: :self,
+      module: __MODULE__,
+      function: :throw_with,
+      args: [:nope]
+    }
+
+    assert catch_throw(RPC.execute(rpc)) == :nope
+  end
+
+  def ok_pair(value), do: {:ok, value}
+  def exit_with(reason), do: exit(reason)
+  def raise_error(message), do: raise(message)
+  def throw_with(value), do: throw(value)
+
+  defp exit_rpc(reason) do
+    %RPC{
+      node: :self,
+      module: __MODULE__,
+      function: :exit_with,
+      args: [reason]
+    }
+  end
 end
