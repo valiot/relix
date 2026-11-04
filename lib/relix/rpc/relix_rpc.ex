@@ -96,7 +96,7 @@ defmodule Relix.RPC do
 
   defp handle_call_exit(rpc, match_node, reason, stack) do
     if node_gone_exit?(reason) do
-      Logger.error(
+      Logger.warning(
         "RPC call #{rpc.module}.#{rpc.function}/#{length(rpc.args)} on #{match_node} exited with #{inspect(reason)}; marking not reachable"
       )
 
@@ -110,7 +110,7 @@ defmodule Relix.RPC do
   # worker. Only shutdown reasons are unreachability; other exits propagate.
   defp node_gone_exit?({:exception, reason}), do: node_gone?(reason)
   defp node_gone_exit?({:signal, reason}), do: node_gone?(reason)
-  defp node_gone_exit?(reason), do: node_gone?(reason)
+  defp node_gone_exit?(_reason), do: false
 
   defp node_gone?(:terminating), do: true
   defp node_gone?(:shutdown), do: true
